@@ -18,6 +18,7 @@ use Embed\Adapters\Adapter;
 use Embed\Embed;
 use wrav\oembed\events\BrokenUrlEvent;
 use wrav\oembed\Oembed;
+use yii\caching\TagDependency;
 use yii\log\Logger;
 
 /**
@@ -29,6 +30,7 @@ use yii\log\Logger;
  */
 class OembedService extends Component
 {
+    const CACHE_TAG = 'oembed:';
     /**
      * @param $url
      * @param array $options
@@ -36,8 +38,8 @@ class OembedService extends Component
      */
     public function embed($url, array $options = [])
     {
-        if (Oembed::getInstance()->getSettings()->enableCache && Craft::$app->cache->exists($url)) {
-            return \Craft::$app->cache->get($url);
+        if (Oembed::getInstance()->getSettings()->enableCache && Craft::$app->cache->exists($this::CACHE_TAG . $url)) {
+            return \Craft::$app->cache->get($this::CACHE_TAG . $url);
         }
 
         try {
@@ -122,7 +124,7 @@ class OembedService extends Component
             }
             finally {
                 if (Oembed::getInstance()->getSettings()->enableCache) {
-                    Craft::$app->cache->set($url, $media, Oembed::getInstance()->getSettings()->cachePeriod ?? 0);
+                    Craft::$app->cache->set($this::CACHE_TAG . $url, $media, Oembed::getInstance()->getSettings()->cachePeriod ?? 0);
                 }
 
                 return $media;
@@ -160,6 +162,16 @@ class OembedService extends Component
         }
 
         return $url;
+    }
+
+    protected function invalidateCaches()
+    {
+        $cache = Craft::$app->getCache();
+        TagDependency::invalidate($cache, $this::CACHE_TAG);
+        Craft::info(
+            'Frontend template cache cleared',
+            __METHOD__
+        );
     }
 
     /**

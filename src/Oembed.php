@@ -10,6 +10,8 @@
 
 namespace wrav\oembed;
 
+use craft\events\RegisterCacheOptionsEvent;
+use craft\utilities\ClearCaches;
 use wrav\oembed\events\BrokenUrlEvent;
 use wrav\oembed\fields\OembedField;
 use wrav\oembed\jobs\BrokenUrlNotify;
@@ -148,6 +150,26 @@ class Oembed extends Plugin
                 Craft::$app->getQueue()->push(new BrokenUrlNotify([
                     'url' => $event->url,
                 ]));
+            }
+        );
+
+        Event::on(
+            ClearCaches::class,
+            ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
+            function (RegisterCacheOptionsEvent $event) {
+                Craft::debug(
+                    'ClearCaches::EVENT_REGISTER_CACHE_OPTIONS',
+                    __METHOD__
+                );
+                // Register our Cache Options
+                $event->options = array_merge(
+                    $event->options,
+                    [
+                        'key' => 'oembed-cache',
+                        'label' => Craft::t('oembed', 'Oembed Caches'),
+                        'action' => [self::$plugin->oembedService, 'invalidateCaches'],
+                    ]
+                );
             }
         );
 
