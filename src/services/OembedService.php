@@ -30,7 +30,7 @@ use yii\log\Logger;
  */
 class OembedService extends Component
 {
-    const CACHE_TAG = 'oembed:';
+    const CACHE_TAG = 'oembed';
     /**
      * @param $url
      * @param array $options
@@ -38,8 +38,13 @@ class OembedService extends Component
      */
     public function embed($url, array $options = [])
     {
-        if (Oembed::getInstance()->getSettings()->enableCache && Craft::$app->cache->exists($this::CACHE_TAG . $url)) {
-            return \Craft::$app->cache->get($this::CACHE_TAG . $url);
+        /**
+         * Must `get` instead of `exists` for redis
+         * @see https://github.com/yiisoft/yii2-redis/issues/156#issuecomment-506426545
+         */
+        if (Oembed::getInstance()->getSettings()->enableCache && $content = Craft::$app->cache->get($url)) {
+            Craft::trace("URL {$url} oembed response retrieved from cache", 'oembed');
+            return \Craft::$app->cache->get($url);
         }
 
         try {
@@ -124,7 +129,8 @@ class OembedService extends Component
             }
             finally {
                 if (Oembed::getInstance()->getSettings()->enableCache) {
-                    Craft::$app->cache->set($this::CACHE_TAG . $url, $media, Oembed::getInstance()->getSettings()->cachePeriod ?? 0);
+                    Craft::trace("URL {$url} oembed response stored in cache", 'oembed');
+                    Craft::$app->cache->set($url, $media, Oembed::getInstance()->getSettings()->cachePeriod ?? 0, new TagDependency(['tags' => $this::CACHE_TAG]));
                 }
 
                 return $media;
@@ -164,12 +170,12 @@ class OembedService extends Component
         return $url;
     }
 
-    protected function invalidateCaches()
+    public function invalidateCaches()
     {
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, $this::CACHE_TAG);
         Craft::info(
-            'Frontend template cache cleared',
+            'Oembed cache cleared',
             __METHOD__
         );
     }

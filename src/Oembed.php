@@ -163,11 +163,12 @@ class Oembed extends Plugin
                 );
                 // Register our Cache Options
                 $event->options = array_merge(
-                    $event->options,
-                    [
-                        'key' => 'oembed-cache',
-                        'label' => Craft::t('oembed', 'Oembed Caches'),
-                        'action' => [self::$plugin->oembedService, 'invalidateCaches'],
+                    $event->options, [
+                        [
+                            'key' => 'oembed-cache',
+                            'label' => Craft::t('oembed', 'Oembed responses'),
+                            'action' => [self::$plugin->oembedService, 'invalidateCaches'],
+                        ]
                     ]
                 );
             }
