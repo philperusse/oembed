@@ -26,6 +26,11 @@ class Settings extends Model
     public $enableCache;
 
     /**
+     * @var string
+     */
+    public $cachePeriod;
+
+    /**
      * @var bool
      */
     public $enableGdpr;

@@ -43,6 +43,7 @@ class Oembed extends Plugin
 
     // Static Properties
     // =========================================================================
+    public $hasCpSettings = true;
 
     /**
      * Static property that is an instance of this plugin class so that it can be accessed via
@@ -55,7 +56,7 @@ class Oembed extends Plugin
     /**
      * @var string|null The plugin’s schema version number
      */
-    public $schemaVersion = '1.0.1';
+    public $schemaVersion = '1.0.2';
 
     // Public Methods
     // =========================================================================

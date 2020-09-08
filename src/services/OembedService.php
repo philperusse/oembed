@@ -122,7 +122,7 @@ class OembedService extends Component
             }
             finally {
                 if (Oembed::getInstance()->getSettings()->enableCache) {
-                    Craft::$app->cache->set($url, $media, 'P1H');
+                    Craft::$app->cache->set($url, $media, Oembed::getInstance()->getSettings()->cachePeriod ?? 0);
                 }
 
                 return $media;
